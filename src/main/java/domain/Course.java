@@ -97,7 +97,7 @@ public class Course extends BaseEntity {
     public void setEndDate(Date endDate) throws InvalidValueException {
         if (endDate != null) {
             if (this.beginDate != null) {
-                if (endDate.before(this.beginDate)) {
+                if (endDate.after(this.beginDate)) {
                     this.endDate = endDate;
                 } else {
                     throw new InvalidValueException("Kursbeginn muss NACH Kursende sein!");

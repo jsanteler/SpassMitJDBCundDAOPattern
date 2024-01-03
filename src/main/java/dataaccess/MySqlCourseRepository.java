@@ -3,7 +3,6 @@ package dataaccess;
 import domain.Course;
 import domain.CourseType;
 
-import javax.xml.transform.Result;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -44,15 +43,13 @@ public class MySqlCourseRepository implements MyCourseRepository {
                         resultSet.getInt("hours"),
                         resultSet.getDate("begindate"),
                         resultSet.getDate("enddate"),
-                        CourseType.valueOf(resultSet.getString("coursetyoe"))
+                        CourseType.valueOf(resultSet.getString("coursetype"))
                         )
                 );
-                return courseList;
-            }
+            }return courseList;
         } catch (SQLException e) {
             throw new DatabaseException("Database error occured!");
         }
-        return null;
     }
 
     @Override
