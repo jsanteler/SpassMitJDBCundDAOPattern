@@ -1,0 +1,25 @@
+version: '3.3'
+
+services:
+  db:
+    image: mysql:5.7
+    environment:
+      MYSQL_DATABASE: 'mycoursesystem'  # Verwenden Sie einen eindeutigen Namen
+      MYSQL_USER: 'root2'
+      MYSQL_PASSWORD: '1234'
+      MYSQL_ROOT_PASSWORD: '1234'
+    ports:
+      - '3307:3307'
+    volumes:
+      - my-db1:/var/lib/mysql  # Verwenden Sie den Standardpfad, wenn nicht anders benötigt
+
+  phpmyadmin:
+    image: phpmyadmin
+    restart: always
+    ports:
+      - 8081:81
+    environment:
+      - PMA_ARBITRARY=1
+
+volumes:
+  my-db1:
