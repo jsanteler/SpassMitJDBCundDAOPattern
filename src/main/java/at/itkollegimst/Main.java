@@ -1,5 +1,6 @@
 package at.itkollegimst;
 
+import dataaccess.MySqlCourseRepository;
 import dataaccess.MysqlDatabaseConnection;
 import ui.Cli;
 
@@ -10,18 +11,13 @@ public class Main {
     public static void main(String[] args) {
         System.out.println("Hello world!");
 
-        Cli myCli = new Cli();
-        myCli.start();
-
         try {
-            Connection myConnection =
-                    MysqlDatabaseConnection.getConnection("jdbc:mysql://localhost:3306/kurssystem", "root", "1234");
-            System.out.println("Verbindung aufgebaut");
-
-        }catch (ClassNotFoundException e){
-            e.printStackTrace();
+            Cli myCli = new Cli(new MySqlCourseRepository());
+            myCli.start();
         }catch (SQLException e) {
-            e.printStackTrace();
+            System.out.println("Datenbankfehler: " + e.getMessage() + "SQL State: " + e.getSQLState());
+        } catch (ClassNotFoundException e) {
+            System.out.println("Datenbankfehler: " + e.getMessage());
         }
     }
 }
