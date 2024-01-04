@@ -42,6 +42,9 @@ public class Cli {
                 case "4":
                     updateCourseDetails();
                     break;
+                case "5":
+                    deleteCoures();
+                    break;
                 case "x":
                     System.out.println("Auf Wiedersehen!");
                     break;
@@ -51,6 +54,22 @@ public class Cli {
             }
         }
         scan.close();
+    }
+
+    private void deleteCoures() {
+
+        System.out.println("Welchen Kurs möchten Sie löschen ? Bitte die ID angeben.");
+
+        Long courseIdToDelete= Long.parseLong(scan.nextLine());
+
+        try {
+            repo.deleteById(courseIdToDelete);
+            System.out.println("Kurs mit ID " + courseIdToDelete + "gelöscht!");
+        }catch (DatabaseException databaseException){
+            System.out.println("Datenbankfehler beim Löschen: " + databaseException.getMessage());
+        }catch (Exception e){
+            System.out.println("Unbekannter Fehler beim Löschen:" + e.getMessage());
+        }
     }
 
     private void updateCourseDetails() {
@@ -105,8 +124,15 @@ public class Cli {
                 );
 
             }
+        }catch (IllegalArgumentException illegalArgumentException){
+
+            System.out.println("EIngabefehler: " + illegalArgumentException.getMessage());
+        }catch (InvalidValueException invalidValueException){
+            System.out.println("Kursdaten nicht korrekt angegeben: " + invalidValueException.getMessage());
+        }catch (DatabaseException databaseException){
+            System.out.println("Datenbankfehler beim Einfügen: " + databaseException.getMessage());
         }catch (Exception e){
-            System.out.println("Unbekannter Fehler bei Kursupdate: " +e.getMessage());
+            System.out.println("Unbekannter Fehler beim Einfügen " + e.getMessage());
         }
     }
 
@@ -203,7 +229,7 @@ public class Cli {
     private void showMenue(){
         System.out.println("---------------------- KURSMANAGEMENT --------------------");
         System.out.println("(1) Kurs eingeben \t (2) ALle Kurse anzeigen \t" + "(3) Kursdetails anzeigen");
-        System.out.println("(4) Kursdetails ändern \t ");
+        System.out.println("(4) Kursdetails ändern \t (5) Kurs löschen \t");
         System.out.println("(x) ENDE");
     }
 
