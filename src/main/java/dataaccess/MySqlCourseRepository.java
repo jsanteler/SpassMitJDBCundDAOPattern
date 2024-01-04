@@ -24,7 +24,7 @@ public class MySqlCourseRepository implements MyCourseRepository {
 
         try {
             String sql = "INSERT INTO `courses` (`name`, `description`, `hours`, `begindate`, `enddate`, `coursetype`) VALUES (?,?,?,?,?,?)";
-            PreparedStatement preparedStatement = con.prepareStatement(sql,Statement.RETURN_GENERATED_KEYS);
+            PreparedStatement preparedStatement = con.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
             preparedStatement.setString(1, entity.getName());
             preparedStatement.setString(2, entity.getDescription());
             preparedStatement.setInt(3, entity.getHours());
@@ -34,18 +34,18 @@ public class MySqlCourseRepository implements MyCourseRepository {
 
             int affectedRows = preparedStatement.executeUpdate();
 
-            if(affectedRows == 0){
+            if (affectedRows == 0) {
                 return Optional.empty();
             }
 
             ResultSet generatedKeys = preparedStatement.getGeneratedKeys();
-            if(generatedKeys.next()){
+            if (generatedKeys.next()) {
 
                 return this.getByID(generatedKeys.getLong(1));
             } else {
                 return Optional.empty();
             }
-        }catch (SQLException sqlException) {
+        } catch (SQLException sqlException) {
             throw new DatabaseException(sqlException.getMessage());
         }
     }
@@ -54,9 +54,9 @@ public class MySqlCourseRepository implements MyCourseRepository {
     public Optional<Course> getByID(Long id) {
 
         Assert.notNull(id);
-        if(countCoursesInDbWithId(id) == 0){
+        if (countCoursesInDbWithId(id) == 0) {
             return Optional.empty();
-        }else{
+        } else {
             try {
                 String sql = "SELECT * FROM `courses` WHERE `id` = ?";
                 PreparedStatement preparedStatement = con.prepareStatement(sql);
@@ -74,14 +74,14 @@ public class MySqlCourseRepository implements MyCourseRepository {
                         CourseType.valueOf(resultSet.getString("coursetype"))
                 );
                 return Optional.of(course);
-            } catch (SQLException sqlException){
+            } catch (SQLException sqlException) {
                 throw new DatabaseException(sqlException.getMessage());
             }
         }
     }
 
 
-    private int countCoursesInDbWithId(Long id){
+    private int countCoursesInDbWithId(Long id) {
         try {
             String countSql = "SELECT COUNT(*) FROM `courses` WHERE `id`=?";
             PreparedStatement preparedStatementCount = con.prepareStatement(countSql);
@@ -90,11 +90,12 @@ public class MySqlCourseRepository implements MyCourseRepository {
             resultSetCount.next();
             int courseCount = resultSetCount.getInt(1);
             return courseCount;
-        } catch (SQLException sqlException){
+        } catch (SQLException sqlException) {
 
             throw new DatabaseException(sqlException.getMessage());
         }
     }
+
     @Override
     public List<Course> getAll() {
 
@@ -103,18 +104,19 @@ public class MySqlCourseRepository implements MyCourseRepository {
             PreparedStatement preparedStatement = con.prepareStatement(sql);
             ResultSet resultSet = preparedStatement.executeQuery();
             ArrayList<Course> courseList = new ArrayList<>();
-            while (resultSet.next()){
+            while (resultSet.next()) {
                 courseList.add(new Course(
-                        resultSet.getLong("id"),
-                        resultSet.getString("name"),
-                        resultSet.getString("description"),
-                        resultSet.getInt("hours"),
-                        resultSet.getDate("begindate"),
-                        resultSet.getDate("enddate"),
-                        CourseType.valueOf(resultSet.getString("coursetype"))
+                                resultSet.getLong("id"),
+                                resultSet.getString("name"),
+                                resultSet.getString("description"),
+                                resultSet.getInt("hours"),
+                                resultSet.getDate("begindate"),
+                                resultSet.getDate("enddate"),
+                                CourseType.valueOf(resultSet.getString("coursetype"))
                         )
                 );
-            }return courseList;
+            }
+            return courseList;
         } catch (SQLException e) {
             throw new DatabaseException("Database error occured!");
         }
@@ -122,7 +124,36 @@ public class MySqlCourseRepository implements MyCourseRepository {
 
     @Override
     public Optional<Course> update(Course entity) {
-        return Optional.empty();
+
+        Assert.notNull(entity);
+
+        String sql = "UPDATE `courses` SET `name` = ?, `description` = ?, `hours` = ?, `begindate` = ?, `enddate` = ?, `coursetype` = ? WHERE `courses`.`id` = ?";
+
+        if (countCoursesInDbWithId(entity.getId()) == 0) {
+            return Optional.empty();
+        } else {
+            try {
+                PreparedStatement preparedStatement = con.prepareStatement(sql);
+                preparedStatement.setString(1, entity.getName());
+                preparedStatement.setString(2, entity.getDescription());
+                preparedStatement.setInt(3, entity.getHours());
+                preparedStatement.setDate(4, entity.getBeginDate());
+                preparedStatement.setDate(5, entity.getEndDate());
+                preparedStatement.setString(6, entity.getCourseType().toString());
+                preparedStatement.setLong(7, entity.getId());
+
+                int affectedRows = preparedStatement.executeUpdate();
+
+                if (affectedRows == 0) {
+
+                    return Optional.empty();
+                } else {
+                    return this.getByID(entity.getId());
+                }
+            } catch (SQLException sqlException) {
+                throw new DatabaseException(sqlException.getMessage());
+            }
+        }
     }
 
     @Override
