@@ -97,7 +97,7 @@ public class MySqlStudentRepository implements MyStudentRepository {
 
     @Override
     public List<Student> getAll() {
-        String sql = "SELECT * FROM `Students`";
+        String sql = "SELECT * FROM `Student`";
         try {
             PreparedStatement preparedStatement = con.prepareStatement(sql);
             ResultSet resultSet = preparedStatement.executeQuery();
@@ -117,11 +117,35 @@ public class MySqlStudentRepository implements MyStudentRepository {
         }
     }
 
-}
+
 
     @Override
     public Optional<Student> update(Student entity) {
-        return Optional.empty();
+        Assert.notNull(entity);
+
+        String sql = "UPDATE `Student` SET `vorname` = ?, `nachname` = ?, `geburtsdatum` = ? WHERE `Student`.`id` = ?";
+
+        if (countStudentsInDbWithId(entity.getId()) == 0) {
+            return Optional.empty();
+        } else {
+            try {
+                PreparedStatement preparedStatement = con.prepareStatement(sql);
+                preparedStatement.setString(1, entity.getVorname());
+                preparedStatement.setString(2, entity.getNachname());
+                preparedStatement.setDate(3, entity.getGeburtstag());
+                preparedStatement.setLong(4, entity.getId());
+
+                int affectedRows = preparedStatement.executeUpdate();
+
+                if (affectedRows == 0) {
+                    return Optional.empty();
+                } else {
+                    return this.getByID(entity.getId());
+                }
+            } catch (SQLException sqlException) {
+                throw new DatabaseException(sqlException.getMessage());
+            }
+        }
     }
 
     @Override

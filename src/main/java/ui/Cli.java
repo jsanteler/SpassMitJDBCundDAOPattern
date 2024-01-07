@@ -60,6 +60,12 @@ public class Cli {
                 case "8":
                     addStudent();
                     break;
+                case "9":
+                    showAllStudents();
+                    break;
+                case "10":
+                    updateStudentDetails();
+                    break;
                 case "x":
                     System.out.println("Auf Wiedersehen!");
                     break;
@@ -70,6 +76,76 @@ public class Cli {
         }
         scan.close();
     }
+
+    private void updateStudentDetails() {
+
+            System.out.println("Für welche Studenten-ID möchten Sie die Studentendetails ändern?");
+
+            try {
+                Long studentId = Long.parseLong(scan.nextLine());
+                Optional<Student> studentOptional = studentrepo.getByID(studentId);
+                if (studentOptional.isEmpty()) {
+                    System.out.println("Student mit der gegebenen ID nicht in der Datenbank!");
+                } else {
+                    Student student = studentOptional.get();
+
+                    System.out.println("Änderungen für folgenden Studenten: ");
+                    System.out.println(student);
+
+                    String vorname, nachname, geburtsdatum;
+
+                    System.out.println("Bitte neue Studentendaten angeben (Enter falls keine Änderung gewünscht ist):");
+                    System.out.println("Vorname: ");
+                    vorname = scan.nextLine();
+                    System.out.println("Nachname: ");
+                    nachname = scan.nextLine();
+                    System.out.println("Geburtsdatum: ");
+                    geburtsdatum = scan.nextLine();
+
+                    Optional<Student> optionalStudentUpdated = studentrepo.update(
+                            new Student(
+                                    student.getId(),
+                                    vorname.equals("") ? student.getVorname() : vorname,
+                                    nachname.equals("") ? student.getNachname() : nachname,
+                                    geburtsdatum.equals("") ? student.getGeburtstag() : Date.valueOf(geburtsdatum)
+                            )
+                    );
+
+                    optionalStudentUpdated.ifPresentOrElse(
+                            (s) -> System.out.println("Student aktualisiert " + s),
+                            () -> System.out.println("Student konnte nicht aktualisiert werden")
+                    );
+                }
+            } catch (InvalidValueException invalidValueException) {
+                System.out.println("Eingabefehler bei Studentenupdate: " + invalidValueException.getMessage());
+            } catch (Exception exception) {
+                System.out.println("Unbekannter Fehler bei Studentenupdate: " + exception.getMessage());
+            }
+        }
+
+
+
+    private void showAllStudents() {
+        List<Student> list = null;
+
+        try {
+            list = studentrepo.getAll();
+            if (list.size() > 0) {
+
+                for (Student student : list) {
+                    System.out.println(student);
+                }
+            } else {
+                System.out.println("Kursliste leer!");
+            }
+        } catch (DatabaseException databaseException) {
+            System.out.println("Datenbankfehler bei Anzeige aller Kurse: " + databaseException.getMessage());
+        } catch (Exception exception) {
+
+            System.out.println("Unbekannter Fehler bei Anzeige aller Kurse: " + exception.getMessage());
+        }
+    }
+
 
     private void addStudent() {
 
@@ -317,7 +393,8 @@ public class Cli {
         System.out.println("---------------------- KURSMANAGEMENT --------------------");
         System.out.println("(1) Kurs eingeben \t (2) ALle Kurse anzeigen \t" + "(3) Kursdetails anzeigen");
         System.out.println("(4) Kursdetails ändern \t (5) Kurs löschen \t (6) Kurssuche \\t\"");
-        System.out.println("(7) Laufende Kurse \t (8) Studenten anlegen \t () ------ \\t\"");
+        System.out.println("(7) Laufende Kurse \t (8) Studenten anlegen \t (9) Studenten anzeigen \\t\"");
+        System.out.println("(10) Studetendetails ändern \t () ------ \t () ------- \\t\"");
 
         System.out.println("(x) ENDE");
     }
