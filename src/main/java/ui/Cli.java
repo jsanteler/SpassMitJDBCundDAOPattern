@@ -66,6 +66,9 @@ public class Cli {
                 case "10":
                     updateStudentDetails();
                     break;
+                case "11":
+                    deleteStudent();
+                    break;
                 case "x":
                     System.out.println("Auf Wiedersehen!");
                     break;
@@ -75,6 +78,23 @@ public class Cli {
             }
         }
         scan.close();
+    }
+
+    private void deleteStudent() {
+        System.out.println("Welchen Studenten möchten Sie löschen? Bitte ID eingeben:");
+
+        try {
+            Long studentIdToDelete = Long.parseLong(scan.nextLine());
+            studentrepo.deleteById(studentIdToDelete);
+        } catch (IllegalArgumentException illegalArgumentException) {
+            System.out.println("Eingabefehler: " + illegalArgumentException.getMessage());
+        } catch (InvalidValueException invalidValueException) {
+            System.out.println("Studentendaten nicht korrekt angegeben: " + invalidValueException.getMessage());
+        } catch (DatabaseException databaseException) {
+            System.out.println("Datenbankfehler beim Löschen: " + databaseException.getMessage());
+        } catch (Exception exception) {
+            System.out.println("Unbekannter Fehler beim Löschen: " + exception.getMessage());
+        }
     }
 
     private void updateStudentDetails() {

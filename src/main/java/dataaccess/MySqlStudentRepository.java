@@ -150,7 +150,17 @@ public class MySqlStudentRepository implements MyStudentRepository {
 
     @Override
     public void deleteById(Long id) {
-
+        Assert.notNull(id);
+        String sql = "DELETE FROM `Student` WHERE `id` = ?";
+        try {
+            if (countStudentsInDbWithId(id) == 1) {
+                PreparedStatement preparedStatement = con.prepareStatement(sql);
+                preparedStatement.setLong(1, id);
+                preparedStatement.executeUpdate();
+            }
+        } catch (SQLException sqlException) {
+            throw new DatabaseException(sqlException.getMessage());
+        }
     }
 
     @Override
