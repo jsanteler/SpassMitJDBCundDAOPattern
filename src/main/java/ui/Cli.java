@@ -2,14 +2,14 @@ package ui;
 
 import dataaccess.DatabaseException;
 import dataaccess.MyCourseRepository;
+import dataaccess.MyStudentRepository;
 import domain.Course;
 import domain.CourseType;
 import domain.InvalidValueException;
+import domain.Student;
 
-import javax.xml.crypto.Data;
+
 import java.sql.Date;
-import java.sql.SQLOutput;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.Scanner;
@@ -19,19 +19,23 @@ public class Cli {
     Scanner scan;
     MyCourseRepository repo;
 
-    public Cli(MyCourseRepository repo){
+    MyStudentRepository studentrepo;
+
+
+    public Cli(MyCourseRepository repo, MyStudentRepository studentrepo) {
 
         this.scan = new Scanner(System.in);
         this.repo = repo;
+        this.studentrepo = studentrepo;
     }
 
-    public void start(){
+    public void start() {
 
         String input = "-";
-        while (!input.equals("x")){
+        while (!input.equals("x")) {
             showMenue();
             input = scan.nextLine();
-            switch (input){
+            switch (input) {
                 case "1":
                     addCourse();
                     break;
@@ -53,6 +57,9 @@ public class Cli {
                 case "7":
                     runningCourses();
                     break;
+                case "8":
+                    addStudent();
+                    break;
                 case "x":
                     System.out.println("Auf Wiedersehen!");
                     break;
@@ -64,6 +71,42 @@ public class Cli {
         scan.close();
     }
 
+    private void addStudent() {
+
+        String vorname, nachname;
+        Date geburtstag;
+
+
+        try {
+            System.out.println("Geben Sie die Daten für den Studenten ein!");
+            System.out.println("Vorname: ");
+            vorname = scan.nextLine();
+            if (vorname.equals("")) throw new IllegalArgumentException("Eingabe darf nicht Leer sein!");
+            System.out.println("Nachname: ");
+            nachname = scan.nextLine();
+            if (nachname.equals("")) throw new IllegalArgumentException("Eingabe darf nicht Leer sein!");
+            System.out.println("Geburtsdatum (YYYY-MM-DD): ");
+            geburtstag = Date.valueOf(scan.nextLine());
+
+            Optional<Student> optionalStudent = studentrepo.insert(
+                    new Student(vorname, nachname, geburtstag)
+            );
+            if (optionalStudent.isPresent()) {
+                System.out.println("Student angelegt: " + optionalStudent.get());
+            } else {
+                System.out.println("Student konnte nicht angelegt werden");
+            }
+        } catch (IllegalArgumentException illegalArgumentException) {
+            System.out.println("Eingabefehler: " + illegalArgumentException);
+        } catch (InvalidValueException invalidValueException) {
+            System.out.println("Studentendaten nicht korrekt angegeben: " + invalidValueException.getMessage());
+        } catch (DatabaseException databaseException) {
+            System.out.println("Datenbankfehler beim Einfügen: " + databaseException.getMessage());
+        } catch (Exception e) {
+            System.out.println("Unbekannter Fehler beim Einfügen " + e.getMessage());
+        }
+    }
+
     private void runningCourses() {
 
         System.out.println("Aktuell laufende Kurse: ");
@@ -71,48 +114,48 @@ public class Cli {
 
         try {
             list = repo.findAllRunningCourses();
-            for (Course course: list) {
+            for (Course course : list) {
                 System.out.println(course);
 
             }
 
-        }catch (DatabaseException databaseException){
+        } catch (DatabaseException databaseException) {
             System.out.println("Datenbankfehler bei Kurs-Anzeige der laufenden Kurse: " + databaseException.getMessage());
-        }catch (Exception exception){
+        } catch (Exception exception) {
             System.out.println("Unbekannter Fehler bei Kurs-Anzeige für laufende Kurse: " + exception.getMessage());
         }
     }
 
     private void courseSearch() {
-    System.out.println("Geben Sie einen Suchbegriff an!");
-    String searchString = scan.nextLine();
-    List<Course> courseList;
+        System.out.println("Geben Sie einen Suchbegriff an!");
+        String searchString = scan.nextLine();
+        List<Course> courseList;
 
-    try {
-        courseList = repo.findAllCoursesByNameOrDescription(searchString);
-        for (Course course: courseList) {
-            System.out.println(course);
+        try {
+            courseList = repo.findAllCoursesByNameOrDescription(searchString);
+            for (Course course : courseList) {
+                System.out.println(course);
+            }
+
+        } catch (DatabaseException databaseException) {
+            System.out.println("Datenbankfehler bei der Kurssuche: " + databaseException.getMessage());
+        } catch (Exception e) {
+            System.out.println("Unbekannter Fehler bei der Kurssuche: " + e.getMessage());
         }
-
-    }catch (DatabaseException databaseException){
-        System.out.println("Datenbankfehler bei der Kurssuche: " + databaseException.getMessage());
-    }catch (Exception e){
-        System.out.println("Unbekannter Fehler bei der Kurssuche: " + e.getMessage());
-    }
     }
 
     private void deleteCoures() {
 
         System.out.println("Welchen Kurs möchten Sie löschen ? Bitte die ID angeben.");
 
-        Long courseIdToDelete= Long.parseLong(scan.nextLine());
+        Long courseIdToDelete = Long.parseLong(scan.nextLine());
 
         try {
             repo.deleteById(courseIdToDelete);
             System.out.println("Kurs mit ID " + courseIdToDelete + "gelöscht!");
-        }catch (DatabaseException databaseException){
+        } catch (DatabaseException databaseException) {
             System.out.println("Datenbankfehler beim Löschen: " + databaseException.getMessage());
-        }catch (Exception e){
+        } catch (Exception e) {
             System.out.println("Unbekannter Fehler beim Löschen:" + e.getMessage());
         }
     }
@@ -124,10 +167,10 @@ public class Cli {
 
         try {
             Optional<Course> courseOptional = repo.getByID(courseID);
-            if(courseOptional.isEmpty()){
+            if (courseOptional.isEmpty()) {
 
                 System.out.println("Kurs mit der gegebenen ID nicht ibn der Datenbank!");
-            }else {
+            } else {
                 Course course = courseOptional.get();
 
                 System.out.println("Änderungen für folgenen Kurs: ");
@@ -154,29 +197,29 @@ public class Cli {
                 Optional<Course> optionalCourseUpdated = repo.update(
                         new Course(
                                 course.getId(),
-                                name.equals("") ? course.getName():name,
-                                description.equals("") ? course.getDescription():description,
-                                hours.equals("") ? course.getHours():Integer.parseInt(hours),
-                                dateFrom.equals("") ? course.getBeginDate():Date.valueOf(dateFrom),
-                                dateTo.equals("") ? course.getEndDate(): Date.valueOf(dateTo),
-                                courseType.equals("") ? course.getCourseType():CourseType.valueOf(courseType)
+                                name.equals("") ? course.getName() : name,
+                                description.equals("") ? course.getDescription() : description,
+                                hours.equals("") ? course.getHours() : Integer.parseInt(hours),
+                                dateFrom.equals("") ? course.getBeginDate() : Date.valueOf(dateFrom),
+                                dateTo.equals("") ? course.getEndDate() : Date.valueOf(dateTo),
+                                courseType.equals("") ? course.getCourseType() : CourseType.valueOf(courseType)
                         )
                 );
 
                 optionalCourseUpdated.ifPresentOrElse(
-                        (c)-> System.out.println("Kurs aktualisiert: " + c),
+                        (c) -> System.out.println("Kurs aktualisiert: " + c),
                         () -> System.out.println("Kurs konnte nicht aktualisiert werden!")
                 );
 
             }
-        }catch (IllegalArgumentException illegalArgumentException){
+        } catch (IllegalArgumentException illegalArgumentException) {
 
             System.out.println("EIngabefehler: " + illegalArgumentException.getMessage());
-        }catch (InvalidValueException invalidValueException){
+        } catch (InvalidValueException invalidValueException) {
             System.out.println("Kursdaten nicht korrekt angegeben: " + invalidValueException.getMessage());
-        }catch (DatabaseException databaseException){
+        } catch (DatabaseException databaseException) {
             System.out.println("Datenbankfehler beim Einfügen: " + databaseException.getMessage());
-        }catch (Exception e){
+        } catch (Exception e) {
             System.out.println("Unbekannter Fehler beim Einfügen " + e.getMessage());
         }
     }
@@ -193,10 +236,10 @@ public class Cli {
             System.out.println("Bitte alle Kursdaten angeben:");
             System.out.println("Name");
             name = scan.nextLine();
-            if(name.equals("")) throw new IllegalArgumentException("Eingabe darf nicht leer sein!");
+            if (name.equals("")) throw new IllegalArgumentException("Eingabe darf nicht leer sein!");
             System.out.println("Beschreibung; ");
             description = scan.nextLine();
-            if(description.equals("")) throw new IllegalArgumentException("Eingabe darf nicht leer sein!");
+            if (description.equals("")) throw new IllegalArgumentException("Eingabe darf nicht leer sein!");
             System.out.println("Stundenanzahl: ");
             hours = Integer.parseInt(scan.nextLine());
             System.out.println("Startdatum (YYYY-MM-DD): ");
@@ -207,23 +250,23 @@ public class Cli {
             courseType = CourseType.valueOf(scan.nextLine());
 
             Optional<Course> optionalCourse = repo.insert(
-                    new Course(name, description,hours,dateFrom,dateTo,courseType)
+                    new Course(name, description, hours, dateFrom, dateTo, courseType)
             );
 
-            if(optionalCourse.isPresent()){
+            if (optionalCourse.isPresent()) {
                 System.out.println("Kurs angelegt: " + optionalCourse.get());
-            }else {
+            } else {
                 System.out.println("Kurs konnte nicht angelegt werden!");
             }
 
-        }catch (IllegalArgumentException illegalArgumentException){
+        } catch (IllegalArgumentException illegalArgumentException) {
 
             System.out.println("EIngabefehler: " + illegalArgumentException.getMessage());
-        }catch (InvalidValueException invalidValueException){
+        } catch (InvalidValueException invalidValueException) {
             System.out.println("Kursdaten nicht korrekt angegeben: " + invalidValueException.getMessage());
-        }catch (DatabaseException databaseException){
+        } catch (DatabaseException databaseException) {
             System.out.println("Datenbankfehler beim Einfügen: " + databaseException.getMessage());
-        }catch (Exception e){
+        } catch (Exception e) {
             System.out.println("Unbekannter Fehler beim Einfügen " + e.getMessage());
         }
 
@@ -232,18 +275,17 @@ public class Cli {
     private void showCourseDetails() {
         System.out.println("Für welchen Kurs möchten Sie die Kursdetails anzeigen?");
         Long corseId = Long.parseLong(scan.nextLine());
-        try
-        {
+        try {
             Optional<Course> courseOptional = repo.getByID(corseId);
-            if(courseOptional.isPresent()){
+            if (courseOptional.isPresent()) {
                 System.out.println(courseOptional.get());
-            }else {
+            } else {
                 System.out.println("Kurs mit der ID " + corseId + " nicht gefunden!");
             }
 
-        }catch (DatabaseException databaseException){
+        } catch (DatabaseException databaseException) {
             System.out.println("Datenbankfehler bei Kurs-Detailanzeige: " + databaseException.getMessage());
-        }catch (Exception exception){
+        } catch (Exception exception) {
             System.out.println("Unbekannter Fehler der Kurs-Detailanzeige: " + exception.getMessage());
         }
     }
@@ -271,16 +313,16 @@ public class Cli {
     }
 
 
-    private void showMenue(){
+    private void showMenue() {
         System.out.println("---------------------- KURSMANAGEMENT --------------------");
         System.out.println("(1) Kurs eingeben \t (2) ALle Kurse anzeigen \t" + "(3) Kursdetails anzeigen");
         System.out.println("(4) Kursdetails ändern \t (5) Kurs löschen \t (6) Kurssuche \\t\"");
-        System.out.println("(7) Laufende Kurse \t () ------ \t () ------ \\t\"");
+        System.out.println("(7) Laufende Kurse \t (8) Studenten anlegen \t () ------ \\t\"");
 
         System.out.println("(x) ENDE");
     }
 
-    private void inputError(){
+    private void inputError() {
         System.out.println("Bitte nur die Zahlen der Menüauswahl eingeben!");
     }
 }

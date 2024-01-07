@@ -1,6 +1,7 @@
 package at.itkollegimst;
 
 import dataaccess.MySqlCourseRepository;
+import dataaccess.MySqlStudentRepository;
 import dataaccess.MysqlDatabaseConnection;
 import ui.Cli;
 
@@ -12,7 +13,7 @@ public class Main {
         System.out.println("Hello world!");
 
         try {
-            Cli myCli = new Cli(new MySqlCourseRepository());
+            Cli myCli = new Cli(new MySqlCourseRepository(), new MySqlStudentRepository());
             myCli.start();
         }catch (SQLException e) {
             System.out.println("Datenbankfehler: " + e.getMessage() + "SQL State: " + e.getSQLState());
