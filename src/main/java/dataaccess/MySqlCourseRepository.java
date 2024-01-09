@@ -2,6 +2,7 @@ package dataaccess;
 
 import domain.Course;
 import domain.CourseType;
+import domain.Student;
 import util.Assert;
 
 import java.sql.*;
@@ -175,7 +176,30 @@ public class MySqlCourseRepository implements MyCourseRepository {
 
     @Override
     public List<Course> findAllCoursesByName(String name) {
-        return null;
+        Assert.notNull(name);
+        try {
+            String sql = "SELECT * FROM `courses` WHERE LOWER(`name`) LIKE LOWER (?)";
+            PreparedStatement preparedStatement = con.prepareStatement(sql);
+            preparedStatement.setString(1, "%" + name + "%");
+            ResultSet resultSet = preparedStatement.executeQuery();
+            ArrayList<Course> courseList = new ArrayList<>();
+            while (resultSet.next()) {
+                courseList.add(new Course(
+                                resultSet.getLong("id"),
+                                resultSet.getString("name"),
+                                resultSet.getString("description"),
+                                resultSet.getInt("hours"),
+                                resultSet.getDate("begindate"),
+                                resultSet.getDate("enddate"),
+                                CourseType.valueOf(resultSet.getString("coursetype"))
+                        )
+                );
+            }
+            return courseList;
+
+        } catch (SQLException sqlException) {
+            throw new DatabaseException(sqlException.getMessage());
+        }
     }
 
     @Override
