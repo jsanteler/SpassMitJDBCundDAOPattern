@@ -58,24 +58,36 @@ public class Cli {
                     runningCourses();
                     break;
                 case "8":
-                    addStudent();
+                    courseSearchByName();
                     break;
                 case "9":
-                    showAllStudents();
+                    courseSearchByDescription();
                     break;
                 case "10":
-                    updateStudentDetails();
+                    courseSearchByBegindate();
                     break;
                 case "11":
-                    deleteStudent();
+                    courseSearchByCourseType();
                     break;
                 case "12":
-                    studentSearchByName();
+                    addStudent();
                     break;
                 case "13":
-                    studentSearchById();
+                    showAllStudents();
                     break;
                 case "14":
+                    updateStudentDetails();
+                    break;
+                case "15":
+                    deleteStudent();
+                    break;
+                case "16":
+                    studentSearchByName();
+                    break;
+                case "17":
+                    studentSearchById();
+                    break;
+                case "18":
                     studentSearchByBirthDate();
                     break;
                 case "x":
@@ -88,6 +100,80 @@ public class Cli {
         }
         scan.close();
     }
+
+    private void courseSearchByCourseType() {
+        System.out.println("Bitte geben Sie den Kurstyp an den Sie suchen: ");
+        List<Course> coursesList;
+        try {
+            CourseType courseType = CourseType.valueOf(scan.nextLine());
+            coursesList = repo.findAllCoursesByCourseType(courseType);
+            for (Course course : coursesList) {
+                System.out.println(course);
+            }
+        } catch (IllegalArgumentException illegalArgumentException) {
+            System.out.println("Eingabefehler: " + illegalArgumentException.getMessage());
+        } catch (Exception exception) {
+            System.out.println("Unbekannter Fehler bei der Ausgabe der Studenten");
+        }
+    }
+
+
+
+    private void courseSearchByBegindate() {
+        System.out.println("Bitte geben Sie das Beginndatum des Kurses ein (YYYY-MM-DD):");
+        List<Course> coursesList;
+        try {
+            Date coursdate = Date.valueOf(scan.nextLine());
+            coursesList = repo.findAllCoursesByStartDate(coursdate);
+            for (Course course : coursesList) {
+                System.out.println(course);
+            }
+        } catch (IllegalArgumentException illegalArgumentException) {
+            System.out.println("Eingabefehler: " + illegalArgumentException.getMessage());
+        } catch (Exception exception) {
+            System.out.println("Unbekannter Fehler bei der Ausgabe der Studenten");
+        }
+    }
+
+    private void courseSearchByDescription() {
+        System.out.println("Geben Sie die Beschreibung des Kurses ein: ");
+        String searchString = scan.nextLine();
+        List<Course> courseList;
+
+        try {
+            courseList = repo.findAllCoursesByDescription(searchString);
+            for (Course course : courseList) {
+                System.out.println(course);
+            }
+
+        } catch (DatabaseException databaseException) {
+            System.out.println("Datenbankfehler bei der Kurssuche: " + databaseException.getMessage());
+        } catch (Exception e) {
+            System.out.println("Unbekannter Fehler bei der Kurssuche: " + e.getMessage());
+        }
+    }
+
+
+
+
+    private void courseSearchByName() {
+        System.out.println("Geben Sie den Coursenamen ein: ");
+        String searchString = scan.nextLine();
+        List<Course> courseList;
+        try {
+            courseList = repo.findAllCoursesByName(searchString);
+            for (Course course : courseList) {
+                System.out.println(course);
+            }
+
+        } catch (DatabaseException databaseException) {
+            System.out.println("Datenbankfehler bei der Studentensuche: " + databaseException.getMessage());
+        } catch (Exception exception) {
+            System.out.println("Unbekannter Fehler bei der Studentensuche: " + exception.getMessage());
+        }
+    }
+
+
 
     private void studentSearchByBirthDate() {
         System.out.println("Bitte geben Sie das Gebursdatum des gesuchten Studenten ein (YYYY-MM-DD):");
@@ -364,7 +450,7 @@ public class Cli {
                                 courseType.equals("") ? course.getCourseType() : CourseType.valueOf(courseType)
                         )
                 );
-
+                //Wenn present ist, Wird kurs aktualisiert Lambda ausdruck.
                 optionalCourseUpdated.ifPresentOrElse(
                         (c) -> System.out.println("Kurs aktualisiert: " + c),
                         () -> System.out.println("Kurs konnte nicht aktualisiert werden!")
@@ -476,11 +562,12 @@ public class Cli {
         System.out.println("---------------------- KURSMANAGEMENT --------------------");
         System.out.println("(1) Kurs eingeben \t (2) ALle Kurse anzeigen \t" + "(3) Kursdetails anzeigen");
         System.out.println("(4) Kursdetails ändern \t (5) Kurs löschen \t (6) Kurssuche \\t\"");
-        System.out.println("(7) Laufende Kurse \t ");
+        System.out.println("(7) Laufende Kurse \t (8) Kurs beim Namen suchen");
+        System.out.println("(9) Kurs über Beschreibung suchen \t (10) Kurs beim Beginndatum suchen \t (11) Kurs über KursTyp suchen");
         System.out.println("---------------------- STUDENTMANAGEMENT ------------------");
-        System.out.println("(8) Studenten anlegen \t (9) Studenten anzeigen \\t\"");
-        System.out.println("(10) Studetendetails ändern \t (11) Studenten löschen \t (12) Studenten suchen beim Namen \t\"");
-        System.out.println("(13) Studenten suchen nach Id \t (14) Studenten suchen nach Geburtsdatum \t () \t\"");
+        System.out.println("(12) Studenten anlegen \t (13) Studenten anzeigen \\t\"");
+        System.out.println("(14) Studetendetails ändern \t (15) Studenten löschen \t (16) Studenten suchen beim Namen \t\"");
+        System.out.println("(17) Studenten suchen nach Id \t (18) Studenten suchen nach Geburtsdatum \t () \t\"");
         System.out.println("(x) ENDE");
     }
 

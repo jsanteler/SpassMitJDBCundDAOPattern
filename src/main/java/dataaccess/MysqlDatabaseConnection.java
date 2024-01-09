@@ -18,6 +18,7 @@ public class MysqlDatabaseConnection {
         if (con!=null){
             return con;
         } else{
+            //Laden des JDBC treiber
             Class.forName("com.mysql.cj.jdbc.Driver");
             con = DriverManager.getConnection(url,user,pwd);
             return con;
